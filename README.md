@@ -18,7 +18,7 @@ irm https://raw.githubusercontent.com/terno-projects/terno/main/install.ps1 | ie
 
 安装脚本会在后台启动 Terno，并配置当前用户登录后自动启动；不会自动打开浏览器。Linux 使用 systemd user service，macOS 使用 LaunchAgent，Windows 使用当前用户的启动注册表项，全程不需要管理员权限。
 
-安装后访问 http://localhost:7200。重新执行安装命令即可升级。当前无登录认证，请仅在可信网络中使用。
+安装后访问 http://localhost:7200。
 
 ## 卸载
 
