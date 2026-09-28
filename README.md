@@ -1,6 +1,6 @@
 # Terno
 
-Termius 风格的 Web 终端工作台，当前为界面演示版本，不建立真实 SSH 连接。
+Terno 是本地运行的 SSH 客户端，提供浏览器界面和 MCP 接口。支持 SSH 终端、SFTP、主机与密钥管理以及本地端口转发；连接从本机直接发起。
 
 ## 安装
 
@@ -19,6 +19,10 @@ irm https://raw.githubusercontent.com/terno-projects/terno/main/install.ps1 | ie
 安装脚本会在后台启动 Terno，并配置当前用户登录后自动启动；不会自动打开浏览器。Linux 使用 systemd user service，macOS 使用 LaunchAgent，Windows 使用当前用户的启动注册表项，全程不需要管理员权限。
 
 安装后访问 http://localhost:7200。
+
+## MCP
+
+在 Terno 页面侧栏打开 **MCP access**，生成 Token 并复制客户端配置。MCP 服务只监听本机地址，使用 Bearer Token 认证；进程重启后已配置的 Token 继续有效，不需要通过界面解锁。Token 只在生成或重置时显示，请当时保存。
 
 ## 卸载
 
