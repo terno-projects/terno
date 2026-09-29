@@ -4,7 +4,6 @@ set -eu
 REPOSITORY="terno-projects/terno"
 INSTALL_DIR="${TERNO_AGENT_INSTALL_DIR:-${HOME:?HOME must be set}/.local/bin}"
 INSTALL_PATH="${INSTALL_DIR}/terno-agent"
-SERVICE_FILE="${XDG_CONFIG_HOME:-${HOME}/.config}/systemd/user/terno-agent.service"
 ENROLL_SECRET="${TERNO_AGENT_ENROLL:-}"
 CALLBACK_URL="${TERNO_AGENT_CALLBACK:-}"
 AGENT_PORT=7222
@@ -32,8 +31,19 @@ case "$INSTALL_DIR" in *'
 '*) fail 'install path cannot contain a newline' ;; esac
 [ "$(uname -s)" = Linux ] || fail 'Terno Agent currently supports Linux only'
 case "$(uname -m)" in x86_64|amd64) target_arch=amd64 ;; aarch64|arm64) target_arch=arm64 ;; *) fail 'only amd64 and arm64 are supported' ;; esac
-for tool in curl jq mktemp chmod sed systemctl sha256sum; do require "$tool"; done
-systemctl --user show-environment >/dev/null 2>&1 || fail 'systemd user manager unavailable'
+for tool in curl jq mktemp chmod sed systemctl sha256sum id; do require "$tool"; done
+if [ "$(id -u)" -eq 0 ]; then
+  SERVICE_FILE=/etc/systemd/system/terno-agent.service
+  SERVICE_TARGET=multi-user.target
+  SERVICE_SCOPE=system
+  systemctl --system show-environment >/dev/null 2>&1 || fail 'systemd system manager unavailable'
+else
+  SERVICE_FILE="${XDG_CONFIG_HOME:-${HOME}/.config}/systemd/user/terno-agent.service"
+  SERVICE_TARGET=default.target
+  SERVICE_SCOPE=user
+  systemctl --user show-environment >/dev/null 2>&1 || fail 'systemd user manager unavailable; log in as this user with a systemd session'
+fi
+service_control() { systemctl "--${SERVICE_SCOPE}" "$@"; }
 
 if [ -e "$INSTALL_PATH" ] || [ -L "$INSTALL_PATH" ]; then
   [ ! -L "$INSTALL_PATH" ] || fail 'refusing to replace a symbolic link'
@@ -76,12 +86,12 @@ Restart=on-failure
 RestartSec=5
 
 [Install]
-WantedBy=default.target
+WantedBy=${SERVICE_TARGET}
 EOF
-systemctl --user daemon-reload
-systemctl --user enable terno-agent.service
-systemctl --user restart terno-agent.service
-systemctl --user is-active --quiet terno-agent.service || fail 'Agent service did not start; inspect the user service logs'
+service_control daemon-reload
+service_control enable terno-agent.service
+service_control restart terno-agent.service
+service_control is-active --quiet terno-agent.service || fail 'Agent service did not start; inspect the service logs'
 say "Terno Agent ${release_tag} is running. Pairing with Terno..."
 curl --proto '=https' --tlsv1.2 --fail-with-body -sS --connect-timeout 15 --max-time 30 \
   -H "Authorization: Bearer ${ENROLL_SECRET}" --data-urlencode "name=$(uname -n)" "$CALLBACK_URL" >/dev/null \
