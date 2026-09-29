@@ -1,6 +1,6 @@
 # Terno
 
-Terno 是本地运行的 SSH 客户端，提供浏览器界面和 MCP 接口。支持 SSH 终端、SFTP、主机与密钥管理以及本地端口转发；连接从本机直接发起。
+Terno 是本地运行的远程终端客户端，提供浏览器界面和 MCP 接口。支持 SSH 终端、SFTP、主机与密钥管理以及本地端口转发；连接从本机直接发起。Linux 服务器也可以安装 Terno Agent，在不运行 SSH 服务的情况下提供终端、文件和端口转发功能。
 
 ## 安装
 
@@ -39,3 +39,5 @@ Windows（PowerShell）：
 ## 手动下载
 
 可以在 [GitHub Releases](https://github.com/terno-projects/terno/releases/latest) 下载 Linux、macOS 或 Windows 对应架构的可执行文件。
+
+Linux 服务器可运行 Terno Agent。先在 Terno 的 **New host** 中选择 **Terno Agent**，填写服务器地址并生成安装命令；在目标服务器上以普通用户执行该命令，即可下载校验 Agent、初始化身份并启动 systemd 用户服务。安装命令包含可重建 Agent 身份和访问密钥的私有材料，安装完成后也必须保密。Agent 默认监听 `0.0.0.0:7222`，服务器应只允许 Terno 电脑访问该端口。安装命令和脚本需要 `bash`、`curl`、`jq`、`sha256sum`和可用的 systemd 用户管理器。
