@@ -81,6 +81,8 @@ After=network-online.target
 
 [Service]
 Type=simple
+Environment="HOME=$(systemd_escape "$HOME")"
+Environment="XDG_CONFIG_HOME=$(systemd_escape "${XDG_CONFIG_HOME:-$HOME/.config}")"
 ExecStart="$(systemd_escape "$INSTALL_PATH")" --listen "0.0.0.0:${AGENT_PORT}"
 Restart=on-failure
 RestartSec=5
@@ -91,9 +93,20 @@ EOF
 service_control daemon-reload
 service_control enable terno-agent.service
 service_control restart terno-agent.service
-service_control is-active --quiet terno-agent.service || fail 'Agent service did not start; inspect the service logs'
+ready=0
+for attempt in 1 2 3 4 5; do
+  if service_control is-active --quiet terno-agent.service &&
+    curl --insecure --proto '=https' --connect-timeout 1 --max-time 2 -s -o /dev/null "https://127.0.0.1:${AGENT_PORT}/v1/probe"; then
+    ready=1
+    break
+  fi
+  sleep 1
+done
+[ "$ready" -eq 1 ] || fail 'Agent service did not start or listen; inspect its service logs'
 say "Terno Agent ${release_tag} is running. Pairing with Terno..."
-curl --proto '=https' --tlsv1.2 --fail-with-body -sS --connect-timeout 15 --max-time 30 \
-  -H "Authorization: Bearer ${ENROLL_SECRET}" --data-urlencode "name=$(uname -n)" "$CALLBACK_URL" >/dev/null \
-  || fail "Agent is running, but pairing failed. Terno must be able to reach this server on TCP port ${AGENT_PORT}."
+if ! curl --proto '=https' --tlsv1.2 --fail-with-body -sS --connect-timeout 15 --max-time 30 \
+  -H "Authorization: Bearer ${ENROLL_SECRET}" --data-urlencode "name=$(uname -n)" "$CALLBACK_URL" -o "${temporary_dir}/pairing-response"; then
+  [ ! -s "${temporary_dir}/pairing-response" ] || sed -n '1,3p' "${temporary_dir}/pairing-response" >&2
+  fail "Agent is running, but pairing failed. Terno must be able to reach this server on TCP port ${AGENT_PORT}."
+fi
 say 'Agent paired. Return to Terno to use the host.'
