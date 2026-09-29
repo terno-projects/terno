@@ -20,10 +20,6 @@ irm https://raw.githubusercontent.com/terno-projects/terno/main/install.ps1 | ie
 
 安装后访问 http://localhost:7200。
 
-## MCP
-
-在 Terno 页面侧栏打开 **MCP access**，生成 Token 并复制客户端配置。MCP 服务只监听本机地址，使用 Bearer Token 认证；进程重启后已配置的 Token 继续有效，不需要通过界面解锁。Token 只在生成或重置时显示，请当时保存。
-
 ## 卸载
 
 Linux / macOS：
