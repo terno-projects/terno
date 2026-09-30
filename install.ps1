@@ -25,7 +25,7 @@ $AutoStartEntryName = "Terno Server"
 
 function Enable-TernoAutoStart {
     $escapedInstallPath = $InstallPath.Replace("'", "''")
-    $startupScript = "`$env:PORT = '$ServerPort'; & '$escapedInstallPath'"
+    $startupScript = "`$env:PORT = '$ServerPort'; & '$escapedInstallPath' server"
     $encodedStartupScript = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($startupScript))
     $startupCommand = "powershell.exe -NoLogo -NoProfile -NonInteractive -WindowStyle Hidden -EncodedCommand $encodedStartupScript"
 
@@ -48,14 +48,14 @@ function Disable-TernoAutoStart {
 
 function Start-ManagedTerno {
     if ($NoStart) {
-        Write-Host "Not started. Run: & '$InstallPath'"
+        Write-Host "Not started. Run: & '$InstallPath' server"
         return
     }
 
     $previousPort = $env:PORT
     try {
         $env:PORT = $ServerPort
-        $serverProcess = Start-Process -FilePath $InstallPath -WindowStyle Hidden -PassThru
+        $serverProcess = Start-Process -FilePath $InstallPath -ArgumentList 'server' -WindowStyle Hidden -PassThru
     }
     finally { $env:PORT = $previousPort }
     for ($attempt = 0; $attempt -lt 30; $attempt++) {

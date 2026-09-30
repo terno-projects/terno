@@ -76,7 +76,7 @@ After=network-online.target
 
 [Service]
 Type=simple
-ExecStart="$(systemd_escape "${INSTALL_PATH}")"
+ExecStart="$(systemd_escape "${INSTALL_PATH}")" server
 Environment="PORT=${SERVER_PORT}"
 Restart=on-failure
 RestartSec=5
@@ -94,7 +94,7 @@ EOF
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
 <key>Label</key><string>projects.terno.terno</string>
-<key>ProgramArguments</key><array><string>$(xml_escape "${INSTALL_PATH}")</string></array>
+<key>ProgramArguments</key><array><string>$(xml_escape "${INSTALL_PATH}")</string><string>server</string></array>
 <key>EnvironmentVariables</key><dict><key>PORT</key><string>${SERVER_PORT}</string></dict>
 <key>RunAtLoad</key><true/>
 <key>KeepAlive</key><dict><key>SuccessfulExit</key><false/></dict>
@@ -161,7 +161,7 @@ staged_binary=""
 say "Verified and installed ${release_tag} at ${INSTALL_PATH}."
 case ":${PATH}:" in *:"${INSTALL_DIR}":*) ;; *) say "Add ${INSTALL_DIR} to PATH, or run the full path shown above." ;; esac
 if [ "${no_start}" = true ]; then
-  say "Not started. Run: PORT=${SERVER_PORT} \"${INSTALL_PATH}\""
+  say "Not started. Run: PORT=${SERVER_PORT} \"${INSTALL_PATH}\" server"
   exit 0
 fi
 enable_startup

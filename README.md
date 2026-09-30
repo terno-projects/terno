@@ -4,6 +4,8 @@ Terno 是本地运行的远程终端客户端，提供浏览器界面和 MCP 接
 
 ## 安装
 
+Terno 只发布一个可执行文件：`terno server` 启动网页服务，`terno agent` 在 Linux 服务器上运行 Agent；不带参数执行 `terno` 也会启动网页服务。Agent 安装命令自动下载同一个程序并配置运行模式。
+
 Linux / macOS（需安装 `curl` 和 `jq`）：
 
 ```bash
