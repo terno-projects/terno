@@ -1,14 +1,10 @@
 # Terno
 
-Terno 是本地运行的远程终端客户端，提供浏览器界面和 MCP 接口。支持 SSH 终端、SFTP、主机与密钥管理；SSH 连接从本机发起。Linux 服务器也可以安装 Terno Agent，由 Agent 主动连接 Terno，无需运行 SSH 服务或开放 Agent 入站端口。
+Local-first 的 SSH 工作台，支持真实 SSH 终端、SFTP、密钥管理和命令片段。SSH 连接由用户电脑上的 Terno 进程发起；Linux、macOS 和 Windows Agent 主动连接 Terno，不经过中心服务器。
 
-## 安装
+Terno 只发布一个可执行文件：`terno server` 启动网页服务，`terno agent` 在 Linux、macOS 或 Windows 上运行 Agent；不带参数执行 `terno` 也会启动网页服务。
 
-生成 Agent 安装命令时只创建临时配对申请，Agent 连接并通过身份验证后才加入主机列表。配对命令有效期为 30 分钟；配对前取消或关闭安装弹窗会撤销命令。未完成的申请也会在 Terno 重启时清除。
-
-Terno 只发布一个可执行文件：`terno server` 启动网页服务，`terno agent` 在 Linux 服务器上运行 Agent；不带参数执行 `terno` 也会启动网页服务。Agent 安装命令自动下载同一个程序并配置运行模式。
-
-Agent 以运行它的 Linux 用户权限操作服务器，终端、命令和文件浏览默认从该用户的家目录 `~` 开始。
+## 安装 Terno 网页服务
 
 Linux / macOS（需安装 `curl` 和 `jq`）：
 
@@ -26,7 +22,7 @@ irm https://raw.githubusercontent.com/terno-projects/terno/main/install.ps1 | ie
 
 安装后访问 http://localhost:7200。
 
-## 卸载
+## 卸载 Terno 网页服务
 
 Linux / macOS：
 
@@ -40,10 +36,24 @@ Windows（PowerShell）：
 & ([scriptblock]::Create((irm https://raw.githubusercontent.com/terno-projects/terno/main/install.ps1))) -Uninstall
 ```
 
-卸载会停止 Terno 并移除对应的自动启动项和程序，日志仍会保留。
+卸载会停止网页服务并移除对应的自动启动项和程序，日志与用户数据仍会保留。Agent 的后台服务或登录自启项需在远端单独停用和移除。
+
+## 安装 Terno Agent
+
+远端 Linux、macOS 和 Windows 电脑安装的也是同一个 `terno` 程序，无需运行 SSH 服务或开放 Agent 入站端口。通过目标电脑可访问的 HTTPS 地址打开 Terno，新建主机时选择 **Terno Agent** 并生成安装命令；无需填写服务器地址或端口。在安装弹窗选择远端操作系统，复制对应命令到目标电脑，以需要操作文件和终端的用户身份执行。Windows 使用 PowerShell，Linux/macOS 使用 `sh`。命令从当前 Terno 下载安装脚本，脚本已包含服务端地址；只需传入配对码。配对码包含私有密钥材料，安装后仍需保密。
+
+安装脚本从公开 Release 下载 amd64 或 arm64 对应程序，校验 SHA-256、初始化身份，并配置后台运行和自动启动：
+
+- Linux：需要 `curl`、`jq`、`sha256sum` 和 systemd。root 安装系统服务；普通用户安装 systemd 用户服务，需可用的用户管理器，退出登录后运行需启用 linger。
+- macOS：需要 `curl`、`jq` 和 `shasum`。root 安装 launchd 系统 daemon；普通用户在 GUI 登录会话中安装 LaunchAgent，随用户登录启动。
+- Windows：需要 Windows 10 1809 / Windows Server 2019 或更新版本，以及 Windows PowerShell。安装到当前用户目录，通过 Startup 文件夹中的快捷方式配置登录自启，无需管理员权限；退出登录后停止运行。
+
+Terno 验证 Agent 身份后自动保存主机。终端、命令和文件都经 Agent 主动发起的 HTTPS 连接传输，默认从运行用户的主目录开始。交互终端在 Linux 使用 `/bin/sh`、macOS 使用 `/bin/zsh`、Windows 使用 PowerShell；非交互命令在 Linux/macOS 使用 `/bin/sh -lc`，Windows 使用 PowerShell 语法。Windows 交互终端使用 ConPTY，文件操作支持盘符和 UNC 路径。
+
+Agent 凭据保存在用户配置目录的 `terno-agent/` 中；Linux/macOS 使用 `0700` 目录和 `0600` 文件权限，Windows 使用只允许当前用户和 Local System 访问的 ACL。需要手动运行时使用 `terno agent --server <Terno HTTPS 地址>`，Windows 可执行文件名为 `terno.exe`。生成的安装命令下载最新公开 Release；需先发布包含对应平台支持的版本。
+
+生成 Agent 安装命令时只创建临时配对申请，Agent 连接并通过身份验证后才加入主机列表。配对命令有效期为 30 分钟；配对前取消或关闭安装弹窗会撤销命令。未完成的申请也会在 Terno 重启时清除。
 
 ## 手动下载
 
 可以在 [GitHub Releases](https://github.com/terno-projects/terno/releases/latest) 下载 Linux、macOS 或 Windows 对应架构的可执行文件。
-
-Linux 服务器可运行 Terno Agent。通过目标服务器可访问的 HTTPS 地址打开 Terno，在 **New host** 中选择 **Terno Agent** 并生成安装命令，无需填写服务器地址或端口；在目标服务器上执行该命令，即可下载校验 Agent、初始化身份、启动 systemd 服务并主动连接 Terno。以 root 执行时安装系统级服务；以普通用户执行时安装该用户的服务，并要求用户管理器可用。Terno 验证 Agent 身份后自动保存主机，终端、命令和文件都经 Agent 发起的连接传输。安装命令包含可重建 Agent 身份和访问密钥的私有材料，安装完成后也必须保密。目标服务器只需能访问 Terno 的公开 HTTPS 地址，不需要开放 Agent 入站端口。安装命令和脚本需要 `sh`、`curl`、`jq`、`sha256sum`和 systemd。
