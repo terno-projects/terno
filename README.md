@@ -40,7 +40,7 @@ Windows（PowerShell）：
 
 ## 安装 Terno Agent
 
-远端 Linux、macOS 和 Windows 电脑安装的也是同一个 `terno` 程序，无需运行 SSH 服务或开放 Agent 入站端口。通过目标电脑可访问的 HTTPS 地址打开 Terno，新建主机时选择 **Terno Agent** 并生成安装命令；无需填写服务器地址或端口。在安装弹窗选择远端操作系统，复制对应命令到目标电脑，以需要操作文件和终端的用户身份执行。Windows 使用 PowerShell，Linux/macOS 使用 `sh`。命令从当前 Terno 下载安装脚本，脚本已包含服务端地址；只需传入配对码。配对码包含私有密钥材料，安装后仍需保密。
+远端 Linux、macOS 和 Windows 电脑安装的也是同一个 `terno` 程序，无需运行 SSH 服务或开放 Agent 入站端口。通过目标电脑可访问的 HTTPS 地址打开 Terno，新建主机时选择 **Terno Agent** 并生成安装命令；无需填写服务器地址或端口。安装弹窗默认选择 **Linux / macOS**，两者共用一条 `sh` 命令，脚本自动识别系统；Windows 选择 **Windows (PowerShell)**。复制对应命令到目标电脑，以需要操作文件和终端的用户身份执行。命令从当前 Terno 下载安装脚本，脚本已包含服务端地址；只需传入配对码。配对码包含私有密钥材料，安装后仍需保密。
 
 安装脚本从公开 Release 下载 amd64 或 arm64 对应程序，校验 SHA-256、初始化身份，并配置后台运行和自动启动：
 
